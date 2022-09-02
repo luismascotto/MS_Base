@@ -1,15 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using MS_Base.Data.SQLServer.Contexts;
 using MS_Base.Helpers;
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using Microsoft.Data.SqlClient;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace MS_Base.Data.SQLServer.Repositories
 {
@@ -30,17 +27,15 @@ namespace MS_Base.Data.SQLServer.Repositories
 
         protected List<T> ExecuteProc<T>(string procName, List<ExecuteProcParam> procParams, int procTimeout = DEFAULT_TIMEOUT) where T : class
         {
-            List<T> result = new List<T>();
+            List<T> result = new();
             using (DbCommand command = CreateCommand(dbContext, procName, procParams, procTimeout, CommandType.StoredProcedure))
             {
                 OpenDbConnection();
-                using (DbDataReader reader = command.ExecuteReader(CommandBehavior.SingleResult))
+                using DbDataReader reader = command.ExecuteReader(CommandBehavior.SingleResult);
+                while (reader.Read())
                 {
-                    while (reader.Read())
-                    {
-                        T obj = MapToClass<T>(reader);
-                        result.Add(obj);
-                    }
+                    T obj = MapToClass<T>(reader);
+                    result.Add(obj);
                 }
             }
 
@@ -60,13 +55,9 @@ namespace MS_Base.Data.SQLServer.Repositories
 
         protected object ExecuteProcScalar(string procName, List<ExecuteProcParam> procParams, int procTimeout = DEFAULT_TIMEOUT)
         {
-            object result;
-            using (DbCommand command = CreateCommand(dbContext, procName, procParams, procTimeout, CommandType.StoredProcedure))
-            {
-                OpenDbConnection();
-                result = command.ExecuteScalar();
-            }
-            return result;
+            using DbCommand command = CreateCommand(dbContext, procName, procParams, procTimeout, CommandType.StoredProcedure);
+            OpenDbConnection();
+            return command.ExecuteScalar();
         }
 
         protected DbDataReader ExecuteQueryFromFile(string SQL, List<ExecuteProcParam> procParams, int procTimeout = DEFAULT_TIMEOUT)
@@ -82,17 +73,15 @@ namespace MS_Base.Data.SQLServer.Repositories
 
         protected List<T> ExecuteQueryFromFile<T>(string SQL, List<ExecuteProcParam> procParams, int procTimeout = DEFAULT_TIMEOUT) where T : class
         {
-            List<T> result = new List<T>();
+            List<T> result = new();
             using (DbCommand command = CreateCommand(dbContext, SQL, procParams, procTimeout))
             {
                 OpenDbConnection();
-                using (DbDataReader reader = command.ExecuteReader(CommandBehavior.CloseConnection))
+                using DbDataReader reader = command.ExecuteReader(CommandBehavior.CloseConnection);
+                while (reader.Read())
                 {
-                    while (reader.Read())
-                    {
-                        T obj = MapToClass<T>(reader);
-                        result.Add(obj);
-                    }
+                    T obj = MapToClass<T>(reader);
+                    result.Add(obj);
                 }
             }
 
@@ -101,7 +90,7 @@ namespace MS_Base.Data.SQLServer.Repositories
 
         protected List<SqlParameter> ExecuteProcNonQueryOutput(string procName, List<ExecuteProcParam> procParams, int procTimeout = DEFAULT_TIMEOUT)
         {
-            List<SqlParameter> result = new List<SqlParameter>();
+            List<SqlParameter> result = new();
             using (DbCommand command = CreateCommand(dbContext, procName, procParams, procTimeout, CommandType.StoredProcedure))
             {
                 OpenDbConnection();
@@ -117,15 +106,14 @@ namespace MS_Base.Data.SQLServer.Repositories
                     });
                 }
             }
-                
+
             return result;
         }
 
         protected bool ExecuteProcNonQuery(string procName, List<ExecuteProcParam> procParams, int procTimeout = DEFAULT_TIMEOUT)
         {
-            bool result = true;
             ExecuteProcNonQueryOutput(procName, procParams, procTimeout);
-            return result;
+            return true;
         }
 
         protected DbCommand CreateCommand(DbContext context, string commandName, List<ExecuteProcParam> procParams, int procTimeout,
@@ -142,19 +130,29 @@ namespace MS_Base.Data.SQLServer.Repositories
                 command.CommandText = commandName;
             }
             command.CommandType = commandType;
-            if (procParams != null)
+            procParams?.ForEach(p =>
             {
-                procParams.ForEach(p =>
+                SqlParameter paramItem = new(p.name, p.dbType)
                 {
-                    SqlParameter paramItem = new SqlParameter(p.name, p.dbType)
-                    {
-                        TypeName = p.typeName,
-                        Value = (p.getValue<object>() != null) ? p.getValue<object>() : DBNull.Value,
-                        Direction = p.direction
-                    };
-                    command.Parameters.Add(paramItem);
-                });
-            }
+                    TypeName = p.typeName,
+                    Value = p.getValue<object>() ?? DBNull.Value,
+                    Direction = p.direction
+                };
+                command.Parameters.Add(paramItem);
+            });
+            //if (procParams != null)
+            //{
+            //    procParams.ForEach(p =>
+            //    {
+            //        SqlParameter paramItem = new(p.name, p.dbType)
+            //        {
+            //            TypeName = p.typeName,
+            //            Value = (p.getValue<object>() != null) ? p.getValue<object>() : DBNull.Value,
+            //            Direction = p.direction
+            //        };
+            //        command.Parameters.Add(paramItem);
+            //    });
+            //}
             return command;
         }
 
@@ -189,7 +187,7 @@ namespace MS_Base.Data.SQLServer.Repositories
 
                 if (prop == null)
                 {
-                    throw new Exception($"O campo [{fieldName}] não foi encontrado no objeto mapeado {returnedObject.GetType().ToString()}");
+                    throw new Exception($"O campo [{fieldName}] não foi encontrado no objeto mapeado {returnedObject.GetType()}");
                 }
 
                 // Recupera o valor da coluna 
@@ -228,9 +226,9 @@ namespace MS_Base.Data.SQLServer.Repositories
             return returnedObject;
         }
 
-        public string[] getNames(Type model)
+        public static string[] getNames(Type model)
         {
-            List<string> ret = new List<string>();
+            List<string> ret = new();
 
             List<PropertyInfo> modelProperties = model.GetProperties().OrderBy(p => p.MetadataToken).ToList();
             modelProperties.ForEach(p => ret.Add(p.Name));
@@ -253,7 +251,7 @@ namespace MS_Base.Data.SQLServer.Repositories
 
         protected List<T> ExecuteProcWithOutputParameters<T>(string procName, ref List<ExecuteProcParam> procParams, int procTimeout = DEFAULT_TIMEOUT) where T : class
         {
-            List<T> result = new List<T>();
+            List<T> result = new();
             using (DbCommand command = CreateCommand(dbContext, procName, procParams, procTimeout, CommandType.StoredProcedure))
             {
                 OpenDbConnection();
@@ -285,38 +283,35 @@ namespace MS_Base.Data.SQLServer.Repositories
 
         protected void ExecuteNonQueryFromFile(string SQL, List<ExecuteProcParam> procParams, int procTimeout = DEFAULT_TIMEOUT)
         {
-            using (DbCommand command = CreateCommand(dbContext, SQL, procParams, procTimeout)) {
-                OpenDbConnection();
-                command.ExecuteNonQuery();
-            }
+            using DbCommand command = CreateCommand(dbContext, SQL, procParams, procTimeout);
+            OpenDbConnection();
+            command.ExecuteNonQuery();
         }
 
         protected void OpenDbConnection()
         {
             DbConnection dbConnection = dbContext.Database.GetDbConnection();
 
-            if (dbConnection != null && dbConnection.State != ConnectionState.Open)
+            if (dbConnection != null && dbConnection?.State != ConnectionState.Open)
             {
                 dbConnection.Open();
             }
         }
-        
-		protected void ExecuteNonQueryOutputFromFile(string procName, ref List<ExecuteProcParam> procParams, int procTimeout = DEFAULT_TIMEOUT)
+
+        protected void ExecuteNonQueryOutputFromFile(string procName, ref List<ExecuteProcParam> procParams, int procTimeout = DEFAULT_TIMEOUT)
         {
-            using (DbCommand command = CreateCommand(dbContext, procName, procParams, procTimeout))
+            using DbCommand command = CreateCommand(dbContext, procName, procParams, procTimeout);
+            OpenDbConnection();
+            command.ExecuteNonQuery();
+            if (procParams != null)
             {
-                OpenDbConnection();
-                command.ExecuteNonQuery();
-                if (procParams != null)
+                procParams.ForEach(p =>
                 {
-                    procParams.ForEach(p =>
+                    if (p.direction == ParameterDirection.Output)
                     {
-                        if (p.direction == ParameterDirection.Output)
-                        {
-                            p.setValue(command.Parameters[p.name].Value);
-                        }
-                    });
-                }
+                        p.setValue(command.Parameters[p.name].Value);
+                    }
+                });
             }
         }
 
@@ -338,7 +333,7 @@ namespace MS_Base.Data.SQLServer.Repositories
 
         public void CommitDbTransaction()
         {
-            
+
             DbConnection dbConnection = dbContext.Database.GetDbConnection();
             if (dbConnection != null && dbConnection.State == ConnectionState.Open && _dbTransaction != null)
             {
@@ -362,34 +357,24 @@ namespace MS_Base.Data.SQLServer.Repositories
 
         protected void ExecuteTransactionNonQueryFromFile(string SQL, List<ExecuteProcParam> procParams, int procTimeout = DEFAULT_TIMEOUT)
         {
-            using (DbCommand command = CreateCommand(dbContext, SQL, procParams, procTimeout))
-            {
-                command.Transaction = _dbTransaction;
-                command.ExecuteNonQuery();
-            }
+            using DbCommand command = CreateCommand(dbContext, SQL, procParams, procTimeout);
+            command.Transaction = _dbTransaction;
+            command.ExecuteNonQuery();
         }
 
         protected DbDataReader ExecuteTransactionQueryFromFile(string SQL, List<ExecuteProcParam> procParams, int procTimeout = DEFAULT_TIMEOUT)
         {
-            DbDataReader result;
-            using (DbCommand command = CreateCommand(dbContext, SQL, procParams, procTimeout))
-            {
-                command.Transaction = _dbTransaction;
-                result = command.ExecuteReader(CommandBehavior.Default);
-            }
-            return result;
+            using DbCommand command = CreateCommand(dbContext, SQL, procParams, procTimeout);
+            command.Transaction = _dbTransaction;
+            return command.ExecuteReader(CommandBehavior.Default);
         }
 
 
         protected object ExecuteQueryFromFileScalar(string SQL, List<ExecuteProcParam> procParams, int procTimeout = DEFAULT_TIMEOUT)
         {
-            object result;
-            using (DbCommand command = CreateCommand(dbContext, SQL, procParams, procTimeout, CommandType.Text))
-            {
-                OpenDbConnection();
-                result = command.ExecuteScalar();
-            }
-            return result;
+            using DbCommand command = CreateCommand(dbContext, SQL, procParams, procTimeout, CommandType.Text);
+            OpenDbConnection();
+            return command.ExecuteScalar();
         }
 
 

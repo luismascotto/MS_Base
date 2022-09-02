@@ -31,27 +31,25 @@ namespace MS_Base.Helpers {
         public static string ComunicaWebService(string strServer, string strPath, string user, string pass, Object obj)
         {
             string strFinalUrl = Utils.NormalizeURL(strServer, strPath);
-            using (var client = new HttpClient())
+            using var client = new HttpClient();
+            Task<HttpResponseMessage> task;
+            HttpResponseMessage response;
+
+            if (user != string.Empty && pass != string.Empty)
             {
-                Task<HttpResponseMessage> task;
-                HttpResponseMessage response;
-
-                if (user != string.Empty && pass != string.Empty)
-                {
-                    var bytePass = Encoding.ASCII.GetBytes($"{user}:{pass}");
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(bytePass));
-                }
-
-
-                var content = new StringContent(JsonConvert.SerializeObject(obj), Encoding.UTF8, "application/json");
-
-                task = client.PostAsync(new Uri(strFinalUrl), content);
-                response = task.Result;
-
-                string result = response.Content.ReadAsStringAsync().Result;
-
-                return result;
+                var bytePass = Encoding.ASCII.GetBytes($"{user}:{pass}");
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(bytePass));
             }
+
+
+            var content = new StringContent(JsonConvert.SerializeObject(obj), Encoding.UTF8, "application/json");
+
+            task = client.PostAsync(new Uri(strFinalUrl), content);
+            response = task.Result;
+
+            string result = response.Content.ReadAsStringAsync().Result;
+
+            return result;
         }
     }
 }

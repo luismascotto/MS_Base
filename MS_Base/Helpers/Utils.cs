@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -42,7 +43,7 @@ namespace MS_Base.Helpers
                     return strURL;
                 }
 
-                StringBuilder sbUrl = new StringBuilder();
+                StringBuilder sbUrl = new();
                 if (strURL.Contains("http://"))
                 {
                     sbUrl.Append("http://");
@@ -76,7 +77,7 @@ namespace MS_Base.Helpers
 
             try
             {
-                StringBuilder sbUrl = new StringBuilder();
+                StringBuilder sbUrl = new();
 
                 //Sempre colocar o endereço sem / no final
                 if (strAddress.EndsWith("/"))
@@ -92,7 +93,7 @@ namespace MS_Base.Helpers
 
                 if (!strPath.StartsWith("/"))
                 {
-                    sbUrl.Append("/");
+                    sbUrl.Append('/');
                 }
 
                 sbUrl.Append(strPath);
@@ -106,5 +107,24 @@ namespace MS_Base.Helpers
                 return strAddress + strPath;
             }
         }
+
+        /// <summary>
+        /// Retornar valores com formato 0,00
+        /// </summary>
+        /// <param name="valor"></param>
+        /// <returns></returns>
+        public static string ToBRLDecimal(this double valor)
+        {
+            return valor.ToString("n2", CultureInfo.GetCultureInfo("Pt-Br"));
+        }
+        public static string ToBRLDecimal(this float valor)
+        {
+            return valor.ToString("n2", CultureInfo.GetCultureInfo("Pt-Br"));
+        }
+        public static string ToBRLDecimal(this decimal valor)
+        {
+            return valor.ToString("n2", CultureInfo.GetCultureInfo("Pt-Br"));
+        }
+
     }
 }

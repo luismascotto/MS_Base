@@ -20,9 +20,12 @@ namespace MS_Base.Helpers
         public const int LOG_LEVEL_WARNING = 2;
         public const int LOG_LEVEL_CRITICAL = 3;
 
-        public Queue arrLogs = new Queue();
+        public Queue arrLogs = new();
 
         readonly IConfiguration _configuration;
+
+        public bool LogController => bool.TrueString == _configuration["ControllerLog"];
+
 
         public Logger(IConfiguration configuration)
         {
@@ -58,7 +61,7 @@ namespace MS_Base.Helpers
         private void LogMessage(int _clienteId, string _strSerial, string _msg, string _class, string _method, int _type, int _level)
         {
 
-            Models.Log objLog = new Models.Log
+            Models.Log objLog = new()
             {
                 Client_ID = _clienteId,
                 Application_ID = _configuration["ApplicationID"],
@@ -238,7 +241,7 @@ namespace MS_Base.Helpers
                 SenderLink senderLink = null;
                 try
                 {
-                    Address address = new Address(_configuration["LogAMQP_url"]);
+                    Address address = new(_configuration["LogAMQP_url"]);
                     connection = new Connection(address);
                     session = new Session(connection);
                     senderLink = new SenderLink(session, "MSIS", _configuration["LogAMQP_fila"]);

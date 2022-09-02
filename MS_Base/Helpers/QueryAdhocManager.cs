@@ -12,10 +12,7 @@ namespace MS_Base.Helpers
 
         public static Dictionary<string, QueryModel> ArrQuery()
         {
-            if (_arrQuery == null)
-            {
-                _arrQuery = new Dictionary<string, QueryModel>();
-            }
+            _arrQuery ??= new Dictionary<string, QueryModel>();
 
             return _arrQuery;
         }
@@ -27,7 +24,7 @@ namespace MS_Base.Helpers
             if (!ArrQuery().ContainsKey(queryName))
             {
                 string strFilePath = $"{queryPath}/{queryName}";
-                FileInfo info = new FileInfo(strFilePath);
+                FileInfo info = new(strFilePath);
 
                 objQuery = new QueryModel
                 {
@@ -54,7 +51,7 @@ namespace MS_Base.Helpers
 
                 foreach (string fl in Directory.GetFiles(strFilePath))
                 {
-                    FileInfo info = new FileInfo(fl);
+                    FileInfo info = new(fl);
 
                     QueryModel objQuery;
 

@@ -19,12 +19,10 @@ namespace MS_Base.Helpers
                 aes.Mode = CipherMode.ECB;
                 aes.Padding = PaddingMode.PKCS7;
 
-                using (var encryptor = aes.CreateEncryptor())
-                {
-                    var buffer = Encoding.ASCII.GetBytes(message);
+                using var encryptor = aes.CreateEncryptor();
+                var buffer = Encoding.ASCII.GetBytes(message);
 
-                    encryptedMsg = Convert.ToBase64String(encryptor.TransformFinalBlock(buffer, 0, buffer.Length));
-                }
+                encryptedMsg = Convert.ToBase64String(encryptor.TransformFinalBlock(buffer, 0, buffer.Length));
             }
 
             return encryptedMsg;
@@ -45,12 +43,10 @@ namespace MS_Base.Helpers
                 aes.Mode = CipherMode.ECB;
                 aes.Padding = PaddingMode.PKCS7;
 
-                using (var decryptor = aes.CreateDecryptor())
-                {
-                    var buffer = Convert.FromBase64String(message);
+                using var decryptor = aes.CreateDecryptor();
+                var buffer = Convert.FromBase64String(message);
 
-                    decryptedMsg = Encoding.ASCII.GetString(decryptor.TransformFinalBlock(buffer, 0, buffer.Length));
-                }
+                decryptedMsg = Encoding.ASCII.GetString(decryptor.TransformFinalBlock(buffer, 0, buffer.Length));
             }
 
             return decryptedMsg;

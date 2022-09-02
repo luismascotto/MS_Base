@@ -76,7 +76,7 @@ namespace MS_Base.Helpers
         {
             if (_memoryCache == null)
             {
-                MemoryCacheOptions opts = new MemoryCacheOptions();
+                MemoryCacheOptions opts = new();
                 _memoryCache = new MemoryCache(opts);
             }
 
@@ -89,7 +89,7 @@ namespace MS_Base.Helpers
 
             if (redis == null)
             {
-                ConfigurationOptions opt = new ConfigurationOptions
+                ConfigurationOptions opt = new()
                 {
                     AllowAdmin = true      //Conectar como ADMIN para permitir limpar o DB
                 };
@@ -291,7 +291,7 @@ namespace MS_Base.Helpers
 
                     IDatabase db = GetRedisConnection().GetDatabase(dbID);
 
-                    List<RedisKey> keys = new List<RedisKey>();
+                    List<RedisKey> keys = new();
                     //Para limpeza, passa 0 quando é Cluster (e não -1 como no get e no set)
                     if (int.Parse(_configuration["CacheType"]) == (int)CacheRedisType.CLUSTER)
                     {

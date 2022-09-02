@@ -7,9 +7,9 @@ namespace MS_Base.Helpers
     public static class JsonHelpers
     {
         public static T CreateFromJsonStream<T>(this Stream stream) {
-            JsonSerializer serializer = new JsonSerializer();
+            JsonSerializer serializer = new();
             T data;
-            using (StreamReader streamReader = new StreamReader(stream)) {
+            using (StreamReader streamReader = new(stream)) {
                 data = (T)serializer.Deserialize(streamReader, typeof(T));
             }
             return data;
@@ -17,7 +17,7 @@ namespace MS_Base.Helpers
 
         public static T CreateFromJsonString<T>(this String json) {
             T data;
-            using (MemoryStream stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json))) {
+            using (MemoryStream stream = new(System.Text.Encoding.UTF8.GetBytes(json))) {
                 data = CreateFromJsonStream<T>(stream);
             }
             return data;
@@ -25,7 +25,7 @@ namespace MS_Base.Helpers
 
         public static T CreateFromJsonFile<T>(this String fileName) {
             T data;
-            using (FileStream fileStream = new FileStream(fileName, FileMode.Open)) {
+            using (FileStream fileStream = new(fileName, FileMode.Open)) {
                 data = CreateFromJsonStream<T>(fileStream);
             }
             return data;
