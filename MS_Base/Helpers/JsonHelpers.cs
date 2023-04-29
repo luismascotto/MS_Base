@@ -1,34 +1,30 @@
 ﻿using System;
-using Newtonsoft.Json;
 using System.IO;
+using System.Text.Json;
+using System.Threading.Tasks;
 
-namespace MS_Base.Helpers
+namespace MS_Base.Helpers;
+
+public static class JsonHelpers
 {
-    public static class JsonHelpers
+    public static async Task<T> CreateFromJsonStream<T>(this Stream stream)
     {
-        public static T CreateFromJsonStream<T>(this Stream stream) {
-            JsonSerializer serializer = new();
-            T data;
-            using (StreamReader streamReader = new(stream)) {
-                data = (T)serializer.Deserialize(streamReader, typeof(T));
-            }
-            return data;
-        }
+        using StreamReader streamReader = new(stream);
+        T data = (T)JsonSerializer.Deserialize(System.Text.Encoding.UTF8.GetBytes(await streamReader.ReadToEndAsync()), typeof(T));
+        return data;
+    }
 
-        public static T CreateFromJsonString<T>(this String json) {
-            T data;
-            using (MemoryStream stream = new(System.Text.Encoding.UTF8.GetBytes(json))) {
-                data = CreateFromJsonStream<T>(stream);
-            }
-            return data;
-        }
+    public static async Task<T> CreateFromJsonString<T>(this String json)
+    {
+        using MemoryStream stream = new(System.Text.Encoding.UTF8.GetBytes(json));
+        T data = await CreateFromJsonStream<T>(stream);
+        return data;
+    }
 
-        public static T CreateFromJsonFile<T>(this String fileName) {
-            T data;
-            using (FileStream fileStream = new(fileName, FileMode.Open)) {
-                data = CreateFromJsonStream<T>(fileStream);
-            }
-            return data;
-        }
+    public static async Task<T> CreateFromJsonFile<T>(this String fileName)
+    {
+        await using FileStream fileStream = new(fileName, FileMode.Open);
+        T data = await CreateFromJsonStream<T>(fileStream);
+        return data;
     }
 }

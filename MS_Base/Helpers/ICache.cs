@@ -1,6 +1,5 @@
-﻿namespace MS_Base.Helpers
+﻿namespace MS_Base.Helpers;
+
+public interface ICache
 {
-    public interface ICache
-    {
-    }
 }
