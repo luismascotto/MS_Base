@@ -8,15 +8,8 @@ namespace MS_Base.Controllers;
 [Route("api")]
 public class BaseController : Controller
 {
-    public IConfiguration _configuration;
-    public DatabaseDbContext _dbContext;
-    public Helpers.ILogger _logger;
-
-    public BaseController(IConfiguration configuration, Helpers.ILogger logger, DatabaseDbContext dbContext)
+    public BaseController()
     {
-        _configuration = configuration;
-        _logger = logger;
-        _dbContext = dbContext;
     }
 
     [HttpGet]
