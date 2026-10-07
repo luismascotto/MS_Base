@@ -26,7 +26,7 @@ public static class Utils
     }
 
     /// <summary>
-    /// Retorna o endereço para comunicação com webservices, removendo possívels erros de // duplicado
+    /// Retorna o endereço para comunicação com webservices, removendo possíveis erros de // duplicado
     /// </summary>
     /// <returns></returns>
     public static string NormalizeURL(string strURL)
@@ -61,7 +61,7 @@ public static class Utils
     }
 
     /// <summary>
-    /// Retorna o endereço completo para comunicação com webservices, removendo possívels erros de barra duplicada
+    /// Retorna o endereço completo para comunicação com webservices, removendo possíveis erros de barra duplicada
     /// ou sem barra
     /// </summary>
     /// <returns></returns>
